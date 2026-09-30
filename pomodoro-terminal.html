@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LEVEL 0 // TERMINAL</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #090b0a;
+        --panel: #101411;
+        --panel2: #151a16;
+        --green: #b7ff62;
+        --green-dim: #668f3c;
+        --text: #d9e4d2;
+        --muted: #68736a;
+        --line: #293329;
+        --danger: #d96868;
+        --rest: #75c7b0;
+      }
+
+      html {
+        background: var(--bg);
+      }
+
+      body {
+        min-height: 100vh;
+        color: var(--text);
+        font-family: "Courier New", monospace;
+        background: linear-gradient(
+            rgba(183, 255, 98, 0.025) 1px,
+            transparent 1px
+          ),
+          linear-gradient(90deg, rgba(183, 255, 98, 0.02) 1px, transparent 1px),
+          radial-gradient(
+            circle at 50% 35%,
+            #20281f 0%,
+            #0d110e 45%,
+            #050605 100%
+          );
+        background-size: 32px 32px, 32px 32px, 100% 100%;
+        overflow-x: hidden;
+      }
+
+      body:before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 20;
+        background: repeating-linear-gradient(
+            0deg,
+            transparent 0,
+            transparent 3px,
+            rgba(0, 0, 0, 0.13) 4px
+          ),
+          radial-gradient(circle, transparent 35%, rgba(0, 0, 0, 0.55) 100%);
+      }
+
+      body:after {
+        content: "";
+        position: fixed;
+        width: 1px;
+        height: 100%;
+        left: 50%;
+        top: 0;
+        background: rgba(183, 255, 98, 0.04);
+        pointer-events: none;
+      }
+
+      .ceiling {
+        height: 58px;
+        border-bottom: 1px solid #343d34;
+        background: #0c0f0d;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 5;
+      }
+
+      .ceiling:after {
+        content: "";
+        position: absolute;
+        left: 7%;
+        right: 7%;
+        bottom: 10px;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--green-dim),
+          transparent
+        );
+        box-shadow: 0 0 18px rgba(183, 255, 98, 0.18);
+      }
+
+      .light {
+        position: absolute;
+        top: 17px;
+        width: 70px;
+        height: 5px;
+        background: #d7ffc0;
+        box-shadow: 0 0 14px rgba(183, 255, 98, 0.65);
+        animation: flicker 8s infinite;
+      }
+
+      .light:nth-child(1) {
+        left: 18%;
+      }
+      .light:nth-child(2) {
+        left: 48%;
+        animation-delay: 3s;
+      }
+      .light:nth-child(3) {
+        right: 18%;
+        animation-delay: 6s;
+      }
+
+      @keyframes flicker {
+        0%,
+        92%,
+        94%,
+        100% {
+          opacity: 1;
+        }
+        93% {
+          opacity: 0.15;
+        }
+      }
+
+      main {
+        width: min(1040px, 92%);
+        margin: auto;
+        padding: 105px 0 70px;
+        position: relative;
+      }
+
+      .header {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        gap: 25px;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 22px;
+        margin-bottom: 18px;
+      }
+
+      .kicker {
+        color: var(--green);
+        font-size: 0.72rem;
+        letter-spacing: 0.25em;
+        margin-bottom: 9px;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 6vw, 4.2rem);
+        line-height: 0.95;
+        letter-spacing: -0.05em;
+        font-weight: 400;
+      }
+
+      .subtitle {
+        color: var(--muted);
+        font-size: 0.75rem;
+        margin-top: 10px;
+      }
+
+      .coordinates {
+        color: #465047;
+        text-align: right;
+        font-size: 0.65rem;
+        line-height: 1.8;
+      }
+
+      .console {
+        border: 1px solid var(--line);
+        background: rgba(10, 13, 11, 0.94);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+      }
+
+      .console-top {
+        min-height: 38px;
+        padding: 0 15px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 0.65rem;
+        letter-spacing: 0.12em;
+      }
+
+      .signal {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .signal-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 9px var(--green);
+      }
+
+      .content {
+        padding: 32px;
+      }
+
+      .status-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        color: var(--green);
+        font-size: 0.7rem;
+        letter-spacing: 0.16em;
+      }
+
+      .status.rest {
+        color: var(--rest);
+      }
+
+      .timer-wrap {
+        text-align: center;
+        padding: 28px 0 12px;
+      }
+
+      .timer {
+        font-size: clamp(4rem, 14vw, 9rem);
+        line-height: 1;
+        letter-spacing: -0.07em;
+        color: #e4ffd4;
+        text-shadow: 0 0 30px rgba(183, 255, 98, 0.13);
+        font-weight: 400;
+      }
+
+      .timer.rest {
+        color: var(--rest);
+        text-shadow: 0 0 30px rgba(117, 199, 176, 0.13);
+      }
+
+      .progress {
+        height: 3px;
+        background: #202720;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .progress-bar {
+        width: 0;
+        height: 100%;
+        background: var(--green);
+        box-shadow: 0 0 12px var(--green);
+        transition: width 0.5s linear;
+      }
+
+      .data-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        border: 1px solid var(--line);
+        margin-top: 28px;
+      }
+
+      .data {
+        min-height: 82px;
+        padding: 16px;
+        border-right: 1px solid var(--line);
+      }
+
+      .data:last-child {
+        border-right: 0;
+      }
+
+      .label {
+        color: var(--muted);
+        font-size: 0.6rem;
+        letter-spacing: 0.16em;
+        margin-bottom: 11px;
+      }
+
+      .value {
+        color: var(--text);
+        font-size: 1rem;
+        font-weight: bold;
+      }
+
+      .value.green {
+        color: var(--green);
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 8px;
+        margin-top: 20px;
+      }
+
+      button {
+        border: 1px solid var(--line);
+        background: #0d110e;
+        color: #9ba99a;
+        padding: 14px 16px;
+        font-family: inherit;
+        font-weight: bold;
+        letter-spacing: 0.12em;
+        cursor: pointer;
+        transition: 0.18s ease;
+      }
+
+      button:hover {
+        color: var(--green);
+        border-color: var(--green-dim);
+        background: #131a12;
+      }
+
+      button:active {
+        transform: scale(0.99);
+      }
+
+      button:first-child {
+        background: var(--green);
+        color: #10140e;
+        border-color: var(--green);
+      }
+
+      button:first-child:hover {
+        background: #d1ff9b;
+        color: #090b0a;
+      }
+
+      button:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+
+      .settings {
+        margin-top: 28px;
+        border-top: 1px solid var(--line);
+        padding-top: 25px;
+      }
+
+      .settings-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .settings-title {
+        color: #9ba99a;
+        font-size: 0.68rem;
+        letter-spacing: 0.15em;
+      }
+
+      .settings-code {
+        color: #414a42;
+        font-size: 0.6rem;
+      }
+
+      .inputs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+
+      .field {
+        border: 1px solid var(--line);
+        padding: 12px;
+        background: #0b0e0c;
+      }
+
+      label {
+        display: block;
+        color: var(--muted);
+        font-size: 0.58rem;
+        letter-spacing: 0.1em;
+        margin-bottom: 8px;
+      }
+
+      input {
+        width: 100%;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: var(--green);
+        font: inherit;
+        font-size: 1rem;
+      }
+
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        margin-top: 24px;
+        color: #414a42;
+        font-size: 0.6rem;
+        letter-spacing: 0.08em;
+      }
+
+      body.rest-mode {
+        --green: #75c7b0;
+        --green-dim: #46796b;
+      }
+
+      body.finished {
+        --green: #d96868;
+        --green-dim: #7e3f3f;
+      }
+
+      body.finished .signal-dot {
+        background: var(--danger);
+        box-shadow: 0 0 9px var(--danger);
+      }
+
+      @media (max-width: 700px) {
+        main {
+          padding-top: 88px;
+        }
+        .header {
+          grid-template-columns: 1fr;
+        }
+        .coordinates {
+          text-align: left;
+        }
+        .content {
+          padding: 20px;
+        }
+        .data-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .data:nth-child(2) {
+          border-right: 0;
+        }
+        .data:nth-child(-n + 2) {
+          border-bottom: 1px solid var(--line);
+        }
+        .controls {
+          grid-template-columns: 1fr;
+        }
+        .inputs {
+          grid-template-columns: 1fr;
+        }
+        .footer {
+          flex-direction: column;
+        }
+      }
+
+      @media (max-width: 420px) {
+        .data-grid {
+          grid-template-columns: 1fr;
+        }
+        .data {
+          border-right: 0 !important;
+          border-bottom: 1px solid var(--line);
+        }
+        .data:last-child {
+          border-bottom: 0;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="ceiling">
+      <div class="light"></div>
+      <div class="light"></div>
+      <div class="light"></div>
+    </div>
+
+    <main>
+      <header class="header">
+        <div>
+          <div class="kicker">BACKROOMS / LEVEL 0 / SESSION TERMINAL</div>
+          <h1>CODING<br />TERMINAL</h1>
+          <p class="subtitle">
+            A quiet place for focused work. One cycle at a time.
+          </p>
+        </div>
+
+        <div class="coordinates">
+          NODE: L0-LOCAL<br />
+          SIGNAL: STABLE<br />
+          ACCESS: GRANTED
+        </div>
+      </header>
+
+      <section class="console">
+        <div class="console-top">
+          <div class="signal">
+            <span class="signal-dot"></span>
+            <span id="systemState">SYSTEM READY</span>
+          </div>
+          <span>SESSION://FOCUS</span>
+        </div>
+
+        <div class="content">
+          <div class="status-row">
+            <span id="status" class="status">WAITING FOR INPUT</span>
+            <span id="modeDisplay">FOCUS</span>
+          </div>
+
+          <div class="timer-wrap">
+            <div id="timer" class="timer">50:00</div>
+          </div>
+
+          <div class="progress">
+            <div id="progressBar" class="progress-bar"></div>
+          </div>
+
+          <div class="data-grid">
+            <div class="data">
+              <div class="label">SESSION REMAINING</div>
+              <div id="sessionDisplay" class="value">03:00:00</div>
+            </div>
+
+            <div class="data">
+              <div class="label">CURRENT CYCLE</div>
+              <div id="cycleDisplay" class="value green">1 / 3</div>
+            </div>
+
+            <div class="data">
+              <div class="label">COMPLETED</div>
+              <div id="completedCycles" class="value">0</div>
+            </div>
+
+            <div class="data">
+              <div class="label">ENVIRONMENT</div>
+              <div class="value">LEVEL 0</div>
+            </div>
+          </div>
+
+          <div class="controls">
+            <button id="startBtn">START SESSION</button>
+            <button id="pauseBtn">PAUSE</button>
+            <button id="resetBtn">RESET</button>
+          </div>
+
+          <div class="settings">
+            <div class="settings-head">
+              <div class="settings-title">SESSION PARAMETERS</div>
+              <div class="settings-code">CFG::LOCAL</div>
+            </div>
+
+            <div class="inputs">
+              <div class="field">
+                <label for="maxHours">MAX SESSION / MIN</label>
+                <input id="maxHours" type="number" min="1" value="180" />
+              </div>
+
+              <div class="field">
+                <label for="focusMinutes">FOCUS / MIN</label>
+                <input id="focusMinutes" type="number" min="1" value="50" />
+              </div>
+
+              <div class="field">
+                <label for="restMinutes">REST / MIN</label>
+                <input id="restMinutes" type="number" min="1" value="5" />
+              </div>
+            </div>
+          </div>
+
+          <div class="footer">
+            <span>KEEP MOVING. THE LIGHTS NEVER TURN OFF.</span>
+            <span>DO NOT LOSE YOUR SESSION.</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const timerElement = document.getElementById("timer");
+      const statusElement = document.getElementById("status");
+      const systemState = document.getElementById("systemState");
+      const progressBar = document.getElementById("progressBar");
+      const sessionDisplay = document.getElementById("sessionDisplay");
+      const cycleDisplay = document.getElementById("cycleDisplay");
+      const modeDisplay = document.getElementById("modeDisplay");
+      const completedCyclesElement = document.getElementById("completedCycles");
+
+      const maxSessionInput = document.getElementById("maxHours");
+      const focusInput = document.getElementById("focusMinutes");
+      const restInput = document.getElementById("restMinutes");
+
+      const startButton = document.getElementById("startBtn");
+      const pauseButton = document.getElementById("pauseBtn");
+      const resetButton = document.getElementById("resetBtn");
+
+      let timer = null;
+      let running = false;
+      let mode = "focus";
+      let remaining = 0;
+      let sessionElapsed = 0;
+      let completedCycles = 0;
+      let cycle = 1;
+
+      function getSettings() {
+        return {
+          maxSession: Math.max(1, Number(maxSessionInput.value)) * 60,
+          focus: Math.max(1, Number(focusInput.value)),
+          rest: Math.max(1, Number(restInput.value)),
+        };
+      }
+
+      function formatTime(seconds) {
+        seconds = Math.max(0, Math.floor(seconds));
+
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+
+        if (hours > 0) {
+          return [
+            String(hours).padStart(2, "0"),
+            String(minutes).padStart(2, "0"),
+            String(secs).padStart(2, "0"),
+          ].join(":");
+        }
+
+        return [
+          String(minutes).padStart(2, "0"),
+          String(secs).padStart(2, "0"),
+        ].join(":");
+      }
+
+      function calculateCycles() {
+        const { maxSession, focus, rest } = getSettings();
+        let left = maxSession;
+        let total = 0;
+
+        while (left > 0) {
+          total++;
+          left -= Math.min(focus * 60, left);
+          if (left <= 0) break;
+          left -= Math.min(rest * 60, left);
+        }
+
+        return total;
+      }
+
+      function getCurrentFocusDuration() {
+        const settings = getSettings();
+        const left = settings.maxSession - sessionElapsed;
+        return Math.min(settings.focus * 60, left);
+      }
+
+      function updateInterface() {
+        const settings = getSettings();
+        const totalCycles = calculateCycles();
+
+        timerElement.textContent = formatTime(remaining);
+        sessionDisplay.textContent = formatTime(
+          Math.max(0, settings.maxSession - sessionElapsed)
+        );
+
+        cycleDisplay.textContent = `${cycle} / ${totalCycles}`;
+        completedCyclesElement.textContent = completedCycles;
+
+        modeDisplay.textContent = mode === "focus" ? "FOCUS" : "REST";
+        statusElement.textContent =
+          mode === "focus"
+            ? running
+              ? "PROGRAMMING IN PROGRESS"
+              : "WAITING FOR INPUT"
+            : "REST PERIOD";
+
+        timerElement.classList.toggle("rest", mode === "rest");
+        statusElement.classList.toggle("rest", mode === "rest");
+        document.body.classList.toggle("rest-mode", mode === "rest");
+
+        const duration =
+          mode === "focus" ? getCurrentFocusDuration() : settings.rest * 60;
+
+        const progress =
+          duration > 0 ? ((duration - remaining) / duration) * 100 : 0;
+
+        progressBar.style.width = `${Math.min(100, progress)}%`;
+      }
+
+      function startSession() {
+        if (running) return;
+
+        if (remaining <= 0) {
+          const settings = getSettings();
+          remaining = Math.min(settings.focus * 60, settings.maxSession * 60);
+        }
+
+        running = true;
+        startButton.disabled = true;
+        systemState.textContent = "SESSION ACTIVE";
+
+        timer = setInterval(tick, 1000);
+        updateInterface();
+      }
+
+      function pauseSession() {
+        if (!running) return;
+
+        running = false;
+        clearInterval(timer);
+        timer = null;
+        startButton.disabled = false;
+        systemState.textContent = "SESSION PAUSED";
+        statusElement.textContent = "SESSION PAUSED";
+      }
+
+      function resetSession() {
+        clearInterval(timer);
+        timer = null;
+
+        running = false;
+        mode = "focus";
+        sessionElapsed = 0;
+        completedCycles = 0;
+        cycle = 1;
+
+        const settings = getSettings();
+
+        remaining = Math.min(settings.focus * 60, settings.maxSession * 60);
+
+        document.body.classList.remove("finished", "rest-mode");
+
+        systemState.textContent = "SYSTEM READY";
+        startButton.disabled = false;
+
+        updateInterface();
+      }
+
+      function tick() {
+        if (remaining > 0) {
+          remaining--;
+
+          if (mode === "focus") {
+            sessionElapsed++;
+          }
+
+          updateInterface();
+          return;
+        }
+
+        changePhase();
+      }
+
+      function changePhase() {
+        const settings = getSettings();
+
+        if (mode === "focus") {
+          completedCycles++;
+
+          const sessionLimit = settings.maxSession * 60;
+
+          if (sessionElapsed >= sessionLimit) {
+            finishSession();
+            return;
+          }
+
+          const remainingSession = sessionLimit - sessionElapsed;
+
+          remaining = Math.min(settings.rest * 60, remainingSession);
+
+          mode = "rest";
+          systemState.textContent = "REST INTERVAL";
+          updateInterface();
+          playBeep();
+          return;
+        }
+
+        mode = "focus";
+        cycle++;
+
+        const remainingSession = settings.maxSession * 60 - sessionElapsed;
+
+        if (remainingSession <= 0) {
+          finishSession();
+          return;
+        }
+
+        remaining = Math.min(settings.focus * 60, remainingSession);
+
+        systemState.textContent = "SESSION ACTIVE";
+        updateInterface();
+        playBeep();
+      }
+
+      function finishSession() {
+        clearInterval(timer);
+        timer = null;
+
+        running = false;
+        remaining = 0;
+
+        startButton.disabled = false;
+        systemState.textContent = "SESSION TERMINATED";
+        statusElement.textContent = "SESSION COMPLETE";
+        modeDisplay.textContent = "DONE";
+
+        document.body.classList.add("finished");
+        progressBar.style.width = "100%";
+
+        playBeep();
+        updateInterface();
+      }
+
+      function playBeep() {
+        try {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+
+          const context = new AudioContext();
+          const oscillator = context.createOscillator();
+          const gain = context.createGain();
+
+          oscillator.frequency.value = 440;
+          oscillator.type = "sine";
+
+          gain.gain.setValueAtTime(0.001, context.currentTime);
+          gain.gain.exponentialRampToValueAtTime(
+            0.15,
+            context.currentTime + 0.02
+          );
+          gain.gain.exponentialRampToValueAtTime(
+            0.001,
+            context.currentTime + 0.5
+          );
+
+          oscillator.connect(gain);
+          gain.connect(context.destination);
+
+          oscillator.start();
+          oscillator.stop(context.currentTime + 0.5);
+        } catch (error) {
+          console.log("Audio indisponível.");
+        }
+      }
+
+      startButton.addEventListener("click", startSession);
+      pauseButton.addEventListener("click", pauseSession);
+      resetButton.addEventListener("click", resetSession);
+
+      [maxSessionInput, focusInput, restInput].forEach((input) => {
+        input.addEventListener("change", resetSession);
+      });
+
+      resetSession();
+    </script>
+  </body>
+</html>
